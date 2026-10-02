@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Preço Médio - Múltiplas Criptos</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<style>
+  * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body {
+    background: #0f172a;
+    color: #e2e8f0;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: #94a3b8; font-size: 14px; margin-bottom: 24px; }
+
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  h2 { font-size: 16px; margin: 0 0 14px; color: #38bdf8; }
+
+  .grid-add {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+
+  label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+
+  input, select {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    padding: 10px 12px;
+    font-size: 15px;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: #38bdf8; }
+
+  button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .btn-add { background: #0ea5e9; color: white; }
+  .btn-add:hover { background: #0284c7; }
+  .btn-del {
+    background: transparent;
+    color: #f87171;
+    font-size: 16px;
+    padding: 6px 10px;
+  }
+  .btn-del:hover { background: #7f1d1d33; border-radius: 6px; }
+  .btn-clear {
+    background: #334155;
+    color: #e2e8f0;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .btn-clear:hover { background: #475569; }
+
+  /* Cards de ativos */
+  .ativo-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .ativo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #334155;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .ativo-nome {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ativo-badge {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  .resumo {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .resumo-box {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .resumo-box .lbl { font-size: 11px; color: #94a3b8; margin-bottom: 3px; }
+  .resumo-box .val { font-size: 15px; font-weight: 700; }
+  .val.pos { color: #4ade80; }
+  .val.neg { color: #f87171; }
+  .val.neutral { color: #38bdf8; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 6px 6px; text-align: right; }
+  th { color: #94a3b8; font-weight: 500; font-size: 11px; border-bottom: 1px solid #334155; }
+  td:first-child, th:first-child { text-align: left; }
+  tr:not(:last-child) td { border-bottom: 1px solid #1e293b; }
+
+  .preco-atual-input {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #e2e8f0;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 110px;
+    text-align: right;
+  }
+
+  .topo-total {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .topo-total .resumo-box { padding: 16px; }
+  .topo-total .val { font-size: 22px; }
+
+  .empty {
+    text-align: center;
+    color: #64748b;
+    padding: 30px 20px;
+    font-size: 14px;
+  }
+
+  .hint { font-size: 12px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+
+  @media (max-width: 640px) {
+    .grid-add { grid-template-columns: 1fr 1fr; }
+    .resumo { grid-template-columns: 1fr 1fr; }
+    .topo-total { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🧮 Preço Médio — Múltiplas Criptos</h1>
+<div class="sub">Registre compras por ativo. Tudo é salvo automaticamente no seu navegador.</div>
+
+<!-- TOTAL GERAL -->
+<div class="topo-total">
+  <div class="resumo-box">
+    <div class="lbl">Total investido (todos os ativos)</div>
+    <div class="val neutral" id="totalGeral">R$ 0,00</div>
+  </div>
+  <div class="resumo-box">
+    <div class="lbl">Valor atual da carteira</div>
+    <div class="val neutral" id="valorGeral">—</div>
+  </div>
+</div>
+
+<!-- ADICIONAR COMPRA -->
+<div class="card">
+  <h2>➕ Adicionar compra</h2>
+  <div class="grid-add">
+    <div>
+      <label>Ativo</label>
+      <select id="ativoSelect"></select>
+    </div>
+    <div>
+      <label>Valor investido (R$)</label>
+      <input type="number" id="valor" placeholder="199.60" step="0.01" min="0">
+    </div>
+    <div>
+      <label>Preço unitário (R$)</label>
+      <input type="number" id="preco" placeholder="47.66" step="0.00000001" min="0">
+    </div>
+    <button class="btn-add" onclick="adicionar()">Adicionar</button>
+  </div>
+
+  <div style="margin-top:14px; display:flex; gap:8px; align-items:end; flex-wrap:wrap;">
+    <div style="flex:1; min-width:200px;">
+      <label>Adicionar novo ativo (ex.: DOGE, ADA, LINK)</label>
+      <input type="text" id="novoAtivo" placeholder="Símbolo do ativo" maxlength="10">
+    </div>
+    <button class="btn-add" onclick="criarAtivo()">+ Criar ativo</button>
+  </div>
+
+  <div class="hint">Pressione <b>Enter</b> nos campos de valor/preço para adicionar. O símbolo do ativo é salvo em maiúsculas.</div>
+</div>
+
+<!-- LISTA DE ATIVOS -->
+<div id="listaAtivos"></div>
+
+<div class="empty" id="vazioGeral">Nenhum ativo cadastrado. Adicione uma compra acima para começar.</div>
+
+<button class="btn-clear" onclick="limparTudo()" style="width:100%; padding:12px;">🗑️ Apagar TODOS os registros</button>
+
+<script>
+  const STORAGE_KEY = 'calculadora_cripto_v1';
+
+  let dados = carregar();
+
+  function carregar() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { console.warn(e); }
+    return { ativos: {} };
+  }
+
+  function salvar() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+  }
+
+  const fmtBRL = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const fmtQtd = v => v.toLocaleString('pt-BR', { maximumFractionDigits: 8 });
+
+  function criarAtivo() {
+    const input = document.getElementById('novoAtivo');
+    const nome = input.value.trim().toUpperCase();
+    if (!nome) { alert('Digite o símbolo do ativo.'); return; }
+    if (dados.ativos[nome]) { alert('Esse ativo já existe.'); return; }
+    dados.ativos[nome] = { compras: [], precoAtual: 0 };
+    input.value = '';
+    salvar();
+    render();
+    document.getElementById('ativoSelect').value = nome;
+  }
+
+  function adicionar() {
+    const ativo = document.getElementById('ativoSelect').value;
+    const valor = parseFloat(document.getElementById('valor').value);
+    const preco = parseFloat(document.getElementById('preco').value);
+
+    if (!ativo) { alert('Selecione ou crie um ativo.'); return; }
+    if (!valor || valor <= 0 || !preco || preco <= 0) {
+      alert('Preencha valor investido e preço unitário com valores maiores que zero.');
+      return;
+    }
+
+    dados.ativos[ativo].compras.push({ valor, preco });
+    document.getElementById('valor').value = '';
+    document.getElementById('preco').value = '';
+    document.getElementById('valor').focus();
+    salvar();
+    render();
+  }
+
+  function removerCompra(ativo, i) {
+    dados.ativos[ativo].compras.splice(i, 1);
+    if (dados.ativos[ativo].compras.length === 0) {
+      delete dados.ativos[ativo];
+    }
+    salvar();
+    render();
+  }
+
+  function atualizarPrecoAtual(ativo, valor) {
+    const v = parseFloat(valor);
+    dados.ativos[ativo].precoAtual = (v && v > 0) ? v : 0;
+    salvar();
+    render();
+  }
+
+  function removerAtivo(ativo) {
+    if (!confirm(`Apagar TODAS as compras de ${ativo}?`)) return;
+    delete dados.ativos[ativo];
+    salvar();
+    render();
+  }
+
+  function limparTudo() {
+    if (!confirm('Apagar TODOS os registros de TODOS os ativos? Essa ação não pode ser desfeita.')) return;
+    dados = { ativos: {} };
+    salvar();
+    render();
+  }
+
+  function calcularAtivo(ativo) {
+    const info = dados.ativos[ativo];
+    let totalInvestido = 0;
+    let totalQtd = 0;
+    info.compras.forEach(c => {
+      totalInvestido += c.valor;
+      totalQtd += c.valor / c.preco;
+    });
+    const precoMedio = totalQtd > 0 ? totalInvestido / totalQtd : 0;
+    const precoAtual = info.precoAtual || 0;
+    const valorAtual = precoAtual > 0 ? totalQtd * precoAtual : 0;
+    const pnl = precoAtual > 0 ? valorAtual - totalInvestido : 0;
+    const pnlPct = (precoAtual > 0 && totalInvestido > 0) ? (pnl / totalInvestido) * 100 : 0;
+
+    return { totalInvestido, totalQtd, precoMedio, precoAtual, valorAtual, pnl, pnlPct };
+  }
+
+  function renderSelect() {
+    const sel = document.getElementById('ativoSelect');
+    const atual = sel.value;
+    sel.innerHTML = '';
+    const ativos = Object.keys(dados.ativos).sort();
+    if (ativos.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— crie um ativo abaixo —';
+      sel.appendChild(opt);
+    } else {
+      ativos.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a;
+        opt.textContent = a;
+        sel.appendChild(opt);
+      });
+      if (ativos.includes(atual)) sel.value = atual;
+    }
+  }
+
+  function render() {
+    renderSelect();
+
+    const container = document.getElementById('listaAtivos');
+    const vazio = document.getElementById('vazioGeral');
+    container.innerHTML = '';
+
+    const ativos = Object.keys(dados.ativos).sort();
+
+    if (ativos.length === 0) {
+      vazio.style.display = 'block';
+      document.getElementById('totalGeral').textContent = fmtBRL(0);
+      document.getElementById('valorGeral').textContent = '—';
+      document.getElementById('valorGeral').className = 'val neutral';
+      return;
+    }
+    vazio.style.display = 'none';
+
+    let somaTotalInvestido = 0;
+    let somaValorAtual = 0;
+    let temPrecoAtualAlgum = false;
+
+    ativos.forEach(ativo => {
+      const r = calcularAtivo(ativo);
+      somaTotalInvestido += r.totalInvestido;
+      if (r.precoAtual > 0) {
+        somaValorAtual += r.valorAtual;
+        temPrecoAtualAlgum = true;
+      }
+
+      const card = document.createElement('div');
+      card.className = 'ativo-card';
+
+      const pnlCls = r.pnl >= 0 ? 'pos' : 'neg';
+      const pnlTxt = r.precoAtual > 0
+        ? (r.pnl >= 0 ? '+' : '') + fmtBRL(r.pnl) + ` (${r.pnlPct >= 0 ? '+' : ''}${r.pnlPct.toFixed(2)}%)`
+        : '—';
+
+      let linhas = '';
+      dados.ativos[ativo].compras.forEach((c, i) => {
+        const qtd = c.valor / c.preco;
+        linhas += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${fmtBRL(c.valor)}</td>
+            <td>${fmtBRL(c.preco)}</td>
+            <td>${fmtQtd(qtd)}</td>
+            <td><button class="btn-del" onclick="removerCompra('${ativo}', ${i})">✕</button></td>
+          </tr>`;
+      });
+
+      card.innerHTML = `
+        <div class="ativo-header">
+          <div class="ativo-nome">
+            🪙 ${ativo}
+            <span class="ativo-badge">${dados.ativos[ativo].compras.length} compra(s)</span>
+          </div>
+          <button class="btn-clear" style="margin:0;" onclick="removerAtivo('${ativo}')">Apagar ativo</button>
+        </div>
+
+        <div class="resumo">
+          <div class="resumo-box">
+            <div class="lbl">Total investido</div>
+            <div class="val neutral">${fmtBRL(r.totalInvestido)}</div>
+          </div>
+          <div class="resumo-box">
+            <div class="lbl">Quantidade</div>
+            <div class="val neutral">${fmtQtd(r.totalQtd)}</div>
+          </div>
+          <div class="resumo-box">
+            <div class="lbl">Preço médio</div>
+            <div class="val neutral">${fmtBRL(r.precoMedio)}</div>
+          </div>
+          <div class="resumo-box">
+            <div class="lbl">Preço atual (R$)</div>
+            <input type="number" class="preco-atual-input"
+                   value="${r.precoAtual || ''}"
+                   placeholder="0.00"
+                   step="0.00000001"
+                   onchange="atualizarPrecoAtual('${ativo}', this.value)">
+          </div>
+        </div>
+
+        <div class="resumo" style="grid-template-columns: 1fr 1fr;">
+          <div class="resumo-box">
+            <div class="lbl">Valor atual da posição</div>
+            <div class="val neutral">${r.precoAtual > 0 ? fmtBRL(r.valorAtual) : '—'}</div>
+          </div>
+          <div class="resumo-box">
+            <div class="lbl">Lucro / Prejuízo</div>
+            <div class="val ${r.precoAtual > 0 ? pnlCls : 'neutral'}">${pnlTxt}</div>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto; margin-top:14px;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Valor (R$)</th>
+                <th>Preço (R$)</th>
+                <th>Qtd.</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>${linhas}</tbody>
+          </table>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+
+    document.getElementById('totalGeral').textContent = fmtBRL(somaTotalInvestido);
+
+    const elValorGeral = document.getElementById('valorGeral');
+    if (temPrecoAtualAlgum) {
+      elValorGeral.textContent = fmtBRL(somaValorAtual);
+      const pnlGeral = somaValorAtual - somaTotalInvestido;
+      elValorGeral.className = 'val ' + (pnlGeral >= 0 ? 'pos' : 'neg');
+    } else {
+      elValorGeral.textContent = '—';
+      elValorGeral.className = 'val neutral';
+    }
+  }
+
+  // Registrar o Service Worker para PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado com sucesso!', reg))
+        .catch(err => console.log('Falha ao registrar Service Worker:', err));
+    });
+  }
+
+  ['valor', 'preco'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') adicionar();
+    });
+  });
+  document.getElementById('novoAtivo').addEventListener('keydown', e => {
+    if (e.key === 'Enter') criarAtivo();
+  });
+
+  document.getElementById('novoAtivo').addEventListener('input', e => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+
+  render();
+</script>
+</body>
+</html>
